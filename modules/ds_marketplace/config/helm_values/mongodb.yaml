@@ -1,0 +1,27 @@
+fullnameOverride: ${service_name}
+
+auth:
+  enabled: true
+  rootPassword: ${root_password}
+  # existingSecret: mongodb-secret
+
+architecture: standalone
+
+podSecurityContext:
+  enabled: false
+
+containerSecurityContext:
+  enabled: false
+
+resources:
+  limits:
+  cpu: 200m
+  memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+# TODO: Where is the configmap for the initdb scripts?
+# initdbScriptsConfigMap: mongodb-bae-configmap
+# extraEnvVarsSecret: mongodb-bae-envs-secret

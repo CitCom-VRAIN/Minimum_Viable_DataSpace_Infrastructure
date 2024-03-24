@@ -40,8 +40,17 @@ module "local_ds_operator" {
     # depends on: walt_id, verifier
     pdp = true
     # depends on: orion_ld, pdp
-    kong = true
+    kong = false
     # depends on: walt_id, mysql, pdp
-    keyrock = true
+    keyrock = false
+  }
+}
+
+module "local_ds_marketplace" {
+  source = "../../modules/ds_marketplace/"
+  depends_on = [ module.local_ds_operator ]
+  namespace = "ds-marketplace"
+  providers = {
+    helm = helm
   }
 }

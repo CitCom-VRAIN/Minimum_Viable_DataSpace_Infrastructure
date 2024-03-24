@@ -1,0 +1,34 @@
+vcverifier:
+  deployment:
+    image:
+      repository: quay.io/fiware/vcverifier
+      tag: 2.8.0
+      pullPolicy: Always
+    logging: 
+      level: DEBUG
+      pathsToSkip: 
+        - "/health"
+
+    #server:
+    #  staticDir: /static
+    #  templateDir: /templates
+        
+    ssikit:
+      auditorUrl: http://dsba-marketplace-walt-id-vcwaltid:7003
+    verifier:
+      tirAddress: https://tir.dsba.fiware.dev/v3/issuers
+      did: did:web:marketplace.dsba.fiware.dev:did
+    configRepo:
+      configEndpoint: http://dsba-marketplace-ccs-credentials-config-service:8080/
+
+  route:
+    enabled: true
+    host: verifier-marketplace.dsba.fiware.dev
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    certificate:
+      issuer:
+        kind: ClusterIssuer
+        name: letsencrypt-aws-prod
+  

@@ -1,0 +1,23 @@
+fullnameOverride: ${service_name}
+
+auth:
+  rootPassword: ${root_password}
+
+initdbScripts:
+  create.sql: |
+    CREATE DATABASE ${til_db};
+    CREATE DATABASE ${ccs_db};
+
+#! What is this??
+# TODO: Discover what this is for
+# rbac: 
+#   create: true
+#   rules:
+#     - apiGroups:
+#       - security.openshift.io
+#       resourceNames:
+#       - anyuid
+#       resources:
+#       - securitycontextconstraints
+#       verbs:
+#       - use    
