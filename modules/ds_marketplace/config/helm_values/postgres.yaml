@@ -1,25 +1,34 @@
-postgresql:
-  fullnameOverride: postgresql-bae
-  auth:
-    username: keycloak  
-    enablePostgresUser: true
-    existingSecret: postgres-secret
-    secretKeys:
-      adminPasswordKey: postgres-root-password
-      userPasswordKey: postgres-password
-  rbac:
-    create: true
-    rules:
-      - apiGroups:
-        - security.openshift.io
-        resourceNames:
-        - anyuid
-        resources:
-        - securitycontextconstraints
-        verbs:
-        - use    
-  primary:
-    initdb:
-      scripts:
-        create.sh: |
-          psql postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5432 -c "CREATE DATABASE keycloak_bae;"
+# ref: https://github/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+fullnameOverride: ${service_name}
+
+auth:
+  ## @param auth.enablePostgresUser Assign a password to the "postgres" admin user. 
+  #   Otherwise, remote access will be blocked for this user.
+  enablePostgresUser: true
+  ## @param auth.postgresPassword Password for the "postgres" admin user. Ignored
+  #    if `auth.existingSecret` is provided
+  postgresPassword: ${root_password}
+  ## @param auth.username Name for a custom user to create
+  username: ${username} 
+  password: ${password}
+  # existingSecret: postgres-secret
+  # secretKeys:
+  #   adminPasswordKey: postgres-root-password
+  #   userPasswordKey: postgres-password
+
+primary:
+  initdb:
+    scripts:
+      create.sh: |
+        psql postgresql://postgres:${root_password}@localhost:5432 -c "CREATE DATABASE ${database_name};"
+# rbac:
+#   create: true
+#   rules:
+#     - apiGroups:
+#       - security.openshift.io
+#       resourceNames:
+#       - anyuid
+#       resources:
+#       - securitycontextconstraints
+#       verbs:
+#       - use    

@@ -1,5 +1,4 @@
-# MongoDB
-
+#* DONE
 resource "helm_release" "mongodb" {
   chart            = var.mongodb.chart_name
   version          = var.mongodb.version
@@ -23,8 +22,7 @@ resource "helm_release" "mongodb" {
   ]
 }
 
-# MySQL
-
+#* DONE
 resource "helm_release" "mysql" {
   chart            = var.mysql.chart_name
   version          = var.mysql.version
@@ -50,8 +48,33 @@ resource "helm_release" "mysql" {
   ]
 }
 
-# PostgreSQL-BAE (data base for Keycloak)
-# TODO: Needs more detailed configuration.
+#* DONE
+resource "helm_release" "postgres" {
+  # data base for Keycloak
+  chart            = var.postgres.chart_name
+  version          = var.postgres.version
+  repository       = var.postgres.repository
+  name             = var.services_names.postgres
+  namespace        = var.namespace
+  create_namespace = true
+  wait             = true
+  count            = var.flags_deployment.postgres ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/postgres.yaml", {
+      service_name  = var.services_names.postgres,
+      root_password = var.postgres.root_password,
+      username      = var.postgres.username,
+      password      = var.postgres.user_password
+      database_name = var.postgres.database_name
+    })
+  ]
+}
 
 # PostGIS (data base for scorpio, scorpio uses postgis)
 # TODO: Needs more detailed configuration.
