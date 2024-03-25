@@ -47,10 +47,23 @@ module "local_ds_operator" {
 }
 
 module "local_ds_marketplace" {
-  source = "../../modules/ds_marketplace/"
-  depends_on = [ module.local_ds_operator ]
-  namespace = "ds-marketplace"
+  source     = "../../modules/ds_marketplace/"
+  depends_on = [module.local_ds_operator]
   providers = {
     helm = helm
+  }
+
+  namespace = "ds-marketplace"
+  flags_deployment = {
+    mongodb  = true
+    mysql    = true
+    postgres = true
+    postgis  = true
+    walt_id  = true
+    # depends on: mysql
+    credentials_config_service = true
+    trusted_issuers_list       = true
+    # depends on: walt_id, mysql, pdp
+    keyrock = false
   }
 }
