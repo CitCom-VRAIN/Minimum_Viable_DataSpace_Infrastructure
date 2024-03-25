@@ -8,9 +8,7 @@ initdbScripts:
     CREATE DATABASE ${til_db};
     CREATE DATABASE ${ccs_db};
 
-#! What is this??
-# TODO: Discover what this is for
-# rbac: 
+# rbac:  “Role-Based Access Control” (Control de Acceso Basado en Roles).
 #   create: true
 #   rules:
 #     - apiGroups:
