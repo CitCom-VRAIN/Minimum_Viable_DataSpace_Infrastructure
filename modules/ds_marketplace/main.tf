@@ -195,11 +195,45 @@ resource "helm_release" "trusted_issuers_list" {
   ]
 }
 
-
 ################################################################################
-# depends on: MySQL, Walt-ID
+# Depends on: MySQL, Walt-ID
+################################################################################
 
-# KeyRock
+#FIXME: Ingress NOT WORKING
+resource "helm_release" "keyrock" {
+  depends_on = [
+    kubernetes_manifest.certs_creation,
+    helm_release.mysql,
+    helm_release.walt_id
+  ]
+
+  chart      = var.keyrock.chart_name
+  version    = var.keyrock.version
+  repository = var.keyrock.repository
+  name       = var.services_names.keyrock
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.keyrock ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP" # LoadBalancer for external access.
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/keyrock.yaml", {
+      service_name        = var.services_names.keyrock,
+      didweb_domain       = var.ds_domain,
+      dns_names           = local.dns_dir[var.services_names.keyrock],
+      secret_tls_name     = local.secrets_tls[var.services_names.keyrock],
+      admin_email         = var.keyrock.admin_email,
+      admin_password      = var.keyrock.admin_password,
+      waltid_secret_tls   = local.secrets_tls[var.services_names.walt_id],
+      mysql_root_password = var.mysql.root_password,
+      mysql_service       = var.services_names.mysql
+    })
+  ]
+}
 
 ################################################################################
 # depends on: Credential Config Service

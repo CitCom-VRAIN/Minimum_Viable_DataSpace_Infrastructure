@@ -37,13 +37,13 @@ variable "flags_deployment" {
     walt_id                    = bool
     credentials_config_service = bool
     trusted_issuers_list       = bool
+    keyrock                    = bool
     # orion_ld                      = bool
     # trusted_participants_registry = bool
     # portal                        = bool
     # verifier                      = bool
     # pdp                           = bool
     # kong                          = bool
-    # keyrock                       = bool
   })
   description = "Whether to deploy resources."
   default = {
@@ -55,6 +55,8 @@ variable "flags_deployment" {
     # depends on: mysql
     credentials_config_service = true
     trusted_issuers_list       = true
+    # depends on: walt_id, mysql
+    keyrock = true
     # # depends on: mongodb
     # orion_ld = true
     # # depends on: orion_ld
@@ -67,8 +69,6 @@ variable "flags_deployment" {
     # pdp = true
     # # depends on: orion_ld, pdp
     # kong = true
-    # # depends on: walt_id, mysql, pdp
-    # keyrock = true
   }
 }
 
@@ -82,13 +82,13 @@ variable "services_names" {
     ccs      = string
     til      = string
     tir      = string
+    keyrock  = string
     # orion_ld = string
     # tpr      = string
     # portal   = string
     # verifier = string
     # pdp      = string
     # kong     = string
-    # keyrock  = string
   })
   description = "values for the namespace of the services"
   default = {
@@ -100,13 +100,13 @@ variable "services_names" {
     ccs      = "cred-conf-service"
     til      = "trusted-issuers-list"
     tir      = "trusted-issuers-registry" # this is include in the TIL service
+    keyrock  = "keyrock"
     # orion_ld = "orionld"
     # tpr      = "trusted-participants-registry"
     # portal   = "portal"
     # verifier = "verifier"
     # pdp      = "pdp"
     # kong     = "proxy-kong"
-    # keyrock  = "keyrock"
   }
 
 }
@@ -236,5 +236,23 @@ variable "trusted_issuers_list" {
     version    = "0.5.3"
     chart_name = "trusted-issuers-list"
     repository = "https://fiware.github.io/helm-charts"
+  }
+}
+
+variable "keyrock" {
+  type = object({
+    version        = string
+    chart_name     = string
+    repository     = string
+    admin_password = string
+    admin_email    = string
+  })
+  description = "Keyrock"
+  default = {
+    version        = "0.7.5" # latest version 0.7.7
+    chart_name     = "keyrock"
+    repository     = "https://fiware.github.io/helm-charts"
+    admin_password = "admin"
+    admin_email    = "admin@ds-operator.org"
   }
 }

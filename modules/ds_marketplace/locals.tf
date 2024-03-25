@@ -2,7 +2,8 @@ locals {
   services_names = [
     var.services_names.walt_id,
     var.services_names.til,
-    var.services_names.tir
+    var.services_names.tir,
+    var.services_names.keyrock
   ]
 
   cert_properties = [
@@ -23,6 +24,12 @@ locals {
       metadata_name    = "${var.services_names.tir}-certificate"
       spec_secret_name = "${var.services_names.tir}-tls-secret"
       dns_names        = "${var.services_names.tir}.${var.ds_domain}"
+    },
+    { # keyrock
+      id               = var.services_names.keyrock
+      metadata_name    = "${var.services_names.keyrock}-certificate"
+      spec_secret_name = "${var.services_names.keyrock}-tls-secret"
+      dns_names        = "${var.services_names.keyrock}.${var.ds_domain}"
     }
   ]
 
