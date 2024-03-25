@@ -30,14 +30,14 @@ variable "ca_clusterissuer_name" {
 
 variable "flags_deployment" {
   type = object({
-    mongodb  = bool
-    mysql    = bool
-    postgres = bool
-    postgis  = bool
-    walt_id  = bool
-    credentials_config_service    = bool
+    mongodb                    = bool
+    mysql                      = bool
+    postgres                   = bool
+    postgis                    = bool
+    walt_id                    = bool
+    credentials_config_service = bool
+    trusted_issuers_list       = bool
     # orion_ld                      = bool
-    # trusted_issuers_list          = bool
     # trusted_participants_registry = bool
     # portal                        = bool
     # verifier                      = bool
@@ -54,9 +54,9 @@ variable "flags_deployment" {
     walt_id  = true
     # depends on: mysql
     credentials_config_service = true
+    trusted_issuers_list       = true
     # # depends on: mongodb
     # orion_ld = true
-    # trusted_issuers_list       = true
     # # depends on: orion_ld
     # trusted_participants_registry = true
     # # depends on: credentials_config_service, kong, verifier
@@ -80,9 +80,9 @@ variable "services_names" {
     postgis  = string
     walt_id  = string
     ccs      = string
+    til      = string
+    tir      = string
     # orion_ld = string
-    # til      = string
-    # tir      = string
     # tpr      = string
     # portal   = string
     # verifier = string
@@ -98,9 +98,9 @@ variable "services_names" {
     postgis  = "postgis"
     walt_id  = "waltid"
     ccs      = "cred-conf-service"
+    til      = "trusted-issuers-list"
+    tir      = "trusted-issuers-registry" # this is include in the TIL service
     # orion_ld = "orionld"
-    # til      = "trusted-issuers-list"
-    # tir      = "trusted-issuers-registry" # this is include in the TIL service
     # tpr      = "trusted-participants-registry"
     # portal   = "portal"
     # verifier = "verifier"
@@ -221,6 +221,20 @@ variable "credentials_config_service" {
   default = {
     version    = "0.0.4"
     chart_name = "credentials-config-service"
+    repository = "https://fiware.github.io/helm-charts"
+  }
+}
+
+variable "trusted_issuers_list" {
+  type = object({
+    version    = string
+    chart_name = string
+    repository = string
+  })
+  description = "Trusted Issuers List service"
+  default = {
+    version    = "0.5.3"
+    chart_name = "trusted-issuers-list"
     repository = "https://fiware.github.io/helm-charts"
   }
 }

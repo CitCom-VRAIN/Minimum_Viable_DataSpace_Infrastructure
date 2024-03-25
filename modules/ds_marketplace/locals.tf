@@ -1,6 +1,8 @@
 locals {
   services_names = [
     var.services_names.walt_id,
+    var.services_names.til,
+    var.services_names.tir
   ]
 
   cert_properties = [
@@ -10,6 +12,18 @@ locals {
       spec_secret_name = "${var.services_names.walt_id}-tls-secret"
       dns_names        = "${var.services_names.walt_id}.${var.ds_domain}"
     },
+    { # til
+      id               = var.services_names.til
+      metadata_name    = "${var.services_names.til}-certificate"
+      spec_secret_name = "${var.services_names.til}-tls-secret"
+      dns_names        = "${var.services_names.til}.${var.ds_domain}"
+    },
+    { # tir
+      id               = var.services_names.tir
+      metadata_name    = "${var.services_names.tir}-certificate"
+      spec_secret_name = "${var.services_names.tir}-tls-secret"
+      dns_names        = "${var.services_names.tir}.${var.ds_domain}"
+    }
   ]
 
   #! Do not edit.

@@ -106,7 +106,7 @@ resource "helm_release" "postgis" {
 
 #? DONE Ingress is needed? configuration datasource?
 #! Use a different image than the default one.
-#! Ingress NOT WORKING
+#FIXME: Ingress NOT WORKING
 resource "helm_release" "walt_id" {
   depends_on = [kubernetes_manifest.certs_creation]
 
@@ -164,7 +164,37 @@ resource "helm_release" "credentials_config_service" {
   ]
 }
 
-# Trusted Issuer List
+#? DONE Ingress is needed?
+resource "helm_release" "trusted_issuers_list" {
+  depends_on = [kubernetes_manifest.certs_creation, helm_release.mysql]
+
+  chart      = var.trusted_issuers_list.chart_name
+  version    = var.trusted_issuers_list.version
+  repository = var.trusted_issuers_list.repository
+  name       = var.services_names.til
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.trusted_issuers_list ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/trusted_issuers_list.yaml", {
+      service_name        = var.services_names.til,
+      ds_domain_til       = local.dns_dir[var.services_names.til], #til.ds-operator.io
+      secret_tls_name_til = local.secrets_tls[var.services_names.til],
+      ds_domain_tir       = local.dns_dir[var.services_names.tir], #tir.ds-operator.io
+      secret_tls_name_tir = local.secrets_tls[var.services_names.tir],
+      mysql_service       = var.services_names.mysql,
+      root_password       = var.mysql.root_password,
+      til_db              = var.mysql.til_db
+    })
+  ]
+}
+
 
 ################################################################################
 # depends on: MySQL, Walt-ID

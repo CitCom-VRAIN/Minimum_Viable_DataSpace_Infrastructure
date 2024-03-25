@@ -1,35 +1,50 @@
-trusted-issuers-list:
-  route: 
-    til: 
-      enabled: true 
-      host: til-marketplace.dsba.fiware.dev
-      tls:
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      certificate:
-        issuer:
-          kind: ClusterIssuer
-          name: letsencrypt-aws-prod
-    tir: 
-      enabled: true 
-      host: tir-marketplace.dsba.fiware.dev
-      tls:
-        insecureEdgeTerminationPolicy: Redirect
-        termination: edge
-      certificate:
-        issuer:
-          kind: ClusterIssuer
-          name: letsencrypt-aws-prod
-  
-  deployment:
-    image:  
-      tag: 0.0.3
-  database:
-    persistence: true
-    host: mysql-marketplace
-    username: root
-    name: til
-    existingSecret:
-      enabled: true
-      name: mysql-secret
-      key: dbPassword
+fullnameOverride: ${service_name}
+
+deployment:
+  image:  
+    tag: 0.0.3
+
+## ingress configuration
+ingress:
+  # Route config for the trusted issuers list endpoint
+  til:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      # forcing everything to use ssl
+      ingress.kubernetes.io/ssl-redirect: "true"
+      # example annotations, allowing cert-manager to automatically create tls-certs
+      kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: ${ds_domain_til}
+        paths:
+          - /
+    tls:
+      - secretName: ${secret_tls_name_til}
+        hosts:
+          - ${ds_domain_til}
+  # Route config for the trusted issuers registry endpoint
+  tir:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      # forcing everything to use ssl
+      ingress.kubernetes.io/ssl-redirect: "true"
+      # example annotations, allowing cert-manager to automatically create tls-certs
+      kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: ${ds_domain_tir}
+        paths:
+          - /
+    tls:
+      - secretName: ${secret_tls_name_tir}
+        hosts:
+          - ${ds_domain_tir}
+
+database:
+  persistence: true
+  host: ${mysql_service}
+  port: 3306
+  name: ${til_db}
+  username: root
+  password: ${root_password}
