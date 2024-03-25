@@ -32,9 +32,9 @@ variable "flags_deployment" {
   type = object({
     mongodb  = bool
     mysql    = bool
-    walt_id  = bool
     postgres = bool
     postgis  = bool
+    walt_id  = bool
     # orion_ld                      = bool
     # credentials_config_service    = bool
     # trusted_issuers_list          = bool
@@ -49,9 +49,9 @@ variable "flags_deployment" {
   default = {
     mongodb  = true
     mysql    = true
-    walt_id  = true
     postgres = true
     postgis  = true
+    walt_id  = true
     # # depends on: mongodb
     # orion_ld = true
     # # depends on: mysql
@@ -76,9 +76,9 @@ variable "services_names" {
   type = object({
     mongo    = string
     mysql    = string
-    walt_id  = string
     postgres = string
     postgis  = string
+    walt_id  = string
     # orion_ld = string
     # ccs      = string
     # til      = string
@@ -94,9 +94,9 @@ variable "services_names" {
   default = {
     mongo    = "mongodb"
     mysql    = "mysql"
-    walt_id  = "waltid"
     postgres = "postgres"
     postgis  = "postgis"
+    walt_id  = "waltid"
     # orion_ld = "orionld"
     # ccs      = "cred-conf-service"
     # til      = "trusted-issuers-list"
@@ -194,5 +194,19 @@ variable "postgis" {
     username      = "scorpio"
     user_password = "scorpio_pass"
     database_name = "ngb"
+  }
+}
+
+variable "walt_id" {
+  type = object({
+    version    = string
+    chart_name = string
+    repository = string
+  })
+  description = "Walt-ID Service"
+  default = {
+    version    = "0.0.17"
+    chart_name = "vcwaltid"
+    repository = "https://i4Trust.github.io/helm-charts"
   }
 }

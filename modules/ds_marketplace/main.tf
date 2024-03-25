@@ -104,8 +104,34 @@ resource "helm_release" "postgis" {
   ]
 }
 
-# Walt-ID
-# TODO: Needs more detailed configuration.
+#? DONE Ingress is needed? configuration datasource?
+#! Use a different image than the default one.
+#! Ingress NOT WORKING
+resource "helm_release" "walt_id" {
+  depends_on = [kubernetes_manifest.certs_creation]
+
+  chart            = var.walt_id.chart_name
+  version          = var.walt_id.version
+  repository       = var.walt_id.repository
+  name             = var.services_names.walt_id
+  namespace        = var.namespace
+  create_namespace = true
+  wait             = true
+  count            = var.flags_deployment.walt_id ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/waltid.yaml", {
+      service_name    = var.services_names.walt_id,
+      dns_names       = local.dns_dir[var.services_names.walt_id],
+      secret_tls_name = local.secrets_tls[var.services_names.walt_id]
+    })
+  ]
+}
 
 ################################################################################
 # depends on: MySQL
