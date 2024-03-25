@@ -76,8 +76,33 @@ resource "helm_release" "postgres" {
   ]
 }
 
-# PostGIS (data base for scorpio, scorpio uses postgis)
-# TODO: Needs more detailed configuration.
+#* DONE
+resource "helm_release" "postgis" {
+  # data base for Scorpio Broker
+  chart            = var.postgis.chart_name
+  version          = var.postgis.version
+  repository       = var.postgis.repository
+  name             = var.services_names.postgis
+  namespace        = var.namespace
+  create_namespace = true
+  wait             = true
+  count            = var.flags_deployment.postgis ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/postgres.yaml", {
+      service_name  = var.services_names.postgis,
+      root_password = var.postgis.root_password,
+      username      = var.postgis.username,
+      password      = var.postgis.user_password
+      database_name = var.postgis.database_name
+    })
+  ]
+}
 
 # Walt-ID
 # TODO: Needs more detailed configuration.

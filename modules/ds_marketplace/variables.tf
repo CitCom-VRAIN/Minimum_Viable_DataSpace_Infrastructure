@@ -34,6 +34,7 @@ variable "flags_deployment" {
     mysql    = bool
     walt_id  = bool
     postgres = bool
+    postgis  = bool
     # orion_ld                      = bool
     # credentials_config_service    = bool
     # trusted_issuers_list          = bool
@@ -50,6 +51,7 @@ variable "flags_deployment" {
     mysql    = true
     walt_id  = true
     postgres = true
+    postgis  = true
     # # depends on: mongodb
     # orion_ld = true
     # # depends on: mysql
@@ -76,6 +78,7 @@ variable "services_names" {
     mysql    = string
     walt_id  = string
     postgres = string
+    postgis  = string
     # orion_ld = string
     # ccs      = string
     # til      = string
@@ -93,6 +96,7 @@ variable "services_names" {
     mysql    = "mysql"
     walt_id  = "waltid"
     postgres = "postgres"
+    postgis  = "postgis"
     # orion_ld = "orionld"
     # ccs      = "cred-conf-service"
     # til      = "trusted-issuers-list"
@@ -168,5 +172,27 @@ variable "postgres" {
     username      = "keycloak"
     user_password = "keycloak_pass"
     database_name = "keycloak_bae"
+  }
+}
+
+variable "postgis" {
+  type = object({
+    version       = string
+    chart_name    = string
+    repository    = string
+    root_password = string
+    username      = string
+    user_password = string
+    database_name = string
+  })
+  description = "PostGIS service"
+  default = {
+    version       = "12.1.13"
+    chart_name    = "postgresql"
+    repository    = "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
+    root_password = "admin"
+    username      = "scorpio"
+    user_password = "scorpio_pass"
+    database_name = "ngb"
   }
 }

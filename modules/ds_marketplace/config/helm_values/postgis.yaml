@@ -1,36 +1,32 @@
-postgresql:
-  #commonAnnotations:
-  #  wistefan/rollout-injecting-webhook: ignore
-  
-  fullnameOverride: marketplace-postgis
+fullnameOverride: ${service_name}
 
-  auth:
-    # Credentials for Keycloak DB
-    username: scorpio
-    enablePostgresUser: true
-    existingSecret: postgres-secret
-    secretKeys:
-      adminPasswordKey: postgres-root-password
-      userPasswordKey: postgres-password
-  
-  rbac:
-    create: true
-    rules:
-      - apiGroups:
-        - security.openshift.io
-        resourceNames:
-        - anyuid
-        resources:
-        - securitycontextconstraints
-        verbs:
-        - use
-      
-  # Init DB
-  primary:
-    persistence:
-      size: 2Gi
-    initdb:
-      scripts:
-        enable.sh: |
-          psql postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5432 -c "CREATE EXTENSION postgis;"
-          psql postgresql://postgres:${POSTGRES_PASSWORD}@localhost:5432 -c "CREATE DATABASE ngb;"
+auth:
+  enablePostgresUser: true
+  postgresPassword: ${root_password}
+  username: ${username} 
+  password: ${password}
+  # existingSecret: postgres-secret
+  # secretKeys:
+  #   adminPasswordKey: postgres-root-password
+  #   userPasswordKey: postgres-password
+
+primary:
+  persistence:
+    size: 2Gi
+  initdb:
+    scripts:
+      enable.sh: |
+        psql postgresql://postgres:${root_password}@localhost:5432 -c "CREATE EXTENSION postgis;"
+        psql postgresql://postgres:${root_password}@localhost:5432 -c "CREATE DATABASE ${database_name};"
+
+# rbac:
+#   create: true
+#   rules:
+#     - apiGroups:
+#       - security.openshift.io
+#       resourceNames:
+#       - anyuid
+#       resources:
+#       - securitycontextconstraints
+#       verbs:
+#       - use
