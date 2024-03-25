@@ -134,10 +134,35 @@ resource "helm_release" "walt_id" {
 }
 
 ################################################################################
-# depends on: MySQL
+# Depends on: MySQL                                                            #
+################################################################################
 
-# TODO: Easy to configure
-# Credential Config Service
+#* DONE
+resource "helm_release" "credentials_config_service" {
+  depends_on = [helm_release.mysql]
+
+  chart      = var.credentials_config_service.chart_name
+  version    = var.credentials_config_service.version
+  repository = var.credentials_config_service.repository
+  name       = var.services_names.ccs
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.credentials_config_service ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/credentials_config_service.yaml", {
+      service_name  = var.services_names.ccs,
+      mysql_service = var.services_names.mysql,
+      ccs_db        = var.mysql.ccs_db,
+      root_password = var.mysql.root_password
+    })
+  ]
+}
 
 # Trusted Issuer List
 

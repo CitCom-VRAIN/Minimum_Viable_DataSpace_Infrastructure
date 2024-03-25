@@ -35,8 +35,8 @@ variable "flags_deployment" {
     postgres = bool
     postgis  = bool
     walt_id  = bool
+    credentials_config_service    = bool
     # orion_ld                      = bool
-    # credentials_config_service    = bool
     # trusted_issuers_list          = bool
     # trusted_participants_registry = bool
     # portal                        = bool
@@ -52,10 +52,10 @@ variable "flags_deployment" {
     postgres = true
     postgis  = true
     walt_id  = true
+    # depends on: mysql
+    credentials_config_service = true
     # # depends on: mongodb
     # orion_ld = true
-    # # depends on: mysql
-    # credentials_config_service = true
     # trusted_issuers_list       = true
     # # depends on: orion_ld
     # trusted_participants_registry = true
@@ -79,8 +79,8 @@ variable "services_names" {
     postgres = string
     postgis  = string
     walt_id  = string
+    ccs      = string
     # orion_ld = string
-    # ccs      = string
     # til      = string
     # tir      = string
     # tpr      = string
@@ -97,8 +97,8 @@ variable "services_names" {
     postgres = "postgres"
     postgis  = "postgis"
     walt_id  = "waltid"
+    ccs      = "cred-conf-service"
     # orion_ld = "orionld"
-    # ccs      = "cred-conf-service"
     # til      = "trusted-issuers-list"
     # tir      = "trusted-issuers-registry" # this is include in the TIL service
     # tpr      = "trusted-participants-registry"
@@ -208,5 +208,19 @@ variable "walt_id" {
     version    = "0.0.17"
     chart_name = "vcwaltid"
     repository = "https://i4Trust.github.io/helm-charts"
+  }
+}
+
+variable "credentials_config_service" {
+  type = object({
+    version    = string
+    chart_name = string
+    repository = string
+  })
+  description = "Credentials Config Service"
+  default = {
+    version    = "0.0.4"
+    chart_name = "credentials-config-service"
+    repository = "https://fiware.github.io/helm-charts"
   }
 }
