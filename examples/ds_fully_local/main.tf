@@ -40,8 +40,8 @@ module "local_ds_operator" {
     # depends on: walt_id, verifier
     pdp = true
     # depends on: orion_ld, pdp
-    kong = true
+    kong = false
     # depends on: walt_id, mysql, pdp
-    keyrock = true
+    keyrock = false
   }
 }

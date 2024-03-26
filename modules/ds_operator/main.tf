@@ -68,9 +68,20 @@ resource "helm_release" "walt_id" {
 
   values = [
     templatefile("${local.helm_conf_yaml_path}/waltid.yaml", {
-      service_name    = var.services_names.walt_id,
-      dns_names       = local.dns_dir[var.services_names.walt_id],
-      secret_tls_name = local.secrets_tls[var.services_names.walt_id]
+      service_name         = var.services_names.walt_id,
+      didweb_domain        = var.ds_domain,
+      dns_name             = local.dns_dir[var.services_names.walt_id],
+      secret_tls_name      = local.secrets_tls[var.services_names.walt_id],
+      dns_core             = local.dns_dir[var.services_names.walt_id_core],
+      secret_tls_core      = local.secrets_tls[var.services_names.walt_id_core],
+      dns_signatory        = local.dns_dir[var.services_names.walt_id_signatory],
+      secret_tls_signatory = local.secrets_tls[var.services_names.walt_id_signatory],
+      dns_auditor          = local.dns_dir[var.services_names.walt_id_auditor],
+      secret_tls_auditor   = local.secrets_tls[var.services_names.walt_id_auditor],
+      dns_custodian        = local.dns_dir[var.services_names.walt_id_custodian],
+      secret_tls_custodian = local.secrets_tls[var.services_names.walt_id_custodian],
+      dns_essif            = local.dns_dir[var.services_names.walt_id_essif],
+      secret_tls_essif     = local.secrets_tls[var.services_names.walt_id_essif]
     })
   ]
 }

@@ -1,6 +1,12 @@
 locals {
   services_names = [
     var.services_names.walt_id,
+    var.services_names.walt_id_core,
+    var.services_names.walt_id_signatory,
+    var.services_names.walt_id_auditor,
+    var.services_names.walt_id_custodian,
+    var.services_names.walt_id_custodian,
+    var.services_names.walt_id_essif,
     var.services_names.til,
     var.services_names.tir,
     var.services_names.tpr,
@@ -16,6 +22,36 @@ locals {
       metadata_name    = "${var.services_names.walt_id}-certificate"
       spec_secret_name = "${var.services_names.walt_id}-tls-secret"
       dns_names        = "${var.services_names.walt_id}.${var.ds_domain}"
+    },
+    { # walt_id
+      id               = var.services_names.walt_id_core
+      metadata_name    = "${var.services_names.walt_id_core}-certificate"
+      spec_secret_name = "${var.services_names.walt_id_core}-tls-secret"
+      dns_names        = "${var.services_names.walt_id_core}.${var.ds_domain}"
+    },
+    { # walt_id
+      id               = var.services_names.walt_id_signatory
+      metadata_name    = "${var.services_names.walt_id_signatory}-certificate"
+      spec_secret_name = "${var.services_names.walt_id_signatory}-tls-secret"
+      dns_names        = "${var.services_names.walt_id_signatory}.${var.ds_domain}"
+    },
+    { # walt_id
+      id               = var.services_names.walt_id_auditor
+      metadata_name    = "${var.services_names.walt_id_auditor}-certificate"
+      spec_secret_name = "${var.services_names.walt_id_auditor}-tls-secret"
+      dns_names        = "${var.services_names.walt_id_auditor}.${var.ds_domain}"
+    },
+    { # walt_id
+      id               = var.services_names.walt_id_custodian
+      metadata_name    = "${var.services_names.walt_id_custodian}-certificate"
+      spec_secret_name = "${var.services_names.walt_id_custodian}-tls-secret"
+      dns_names        = "${var.services_names.walt_id_custodian}.${var.ds_domain}"
+    },
+    { # walt_id
+      id               = var.services_names.walt_id_essif
+      metadata_name    = "${var.services_names.walt_id_essif}-certificate"
+      spec_secret_name = "${var.services_names.walt_id_essif}-tls-secret"
+      dns_names        = "${var.services_names.walt_id_essif}.${var.ds_domain}"
     },
     { # til
       id               = var.services_names.til

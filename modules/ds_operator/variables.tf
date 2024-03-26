@@ -75,35 +75,45 @@ variable "flags_deployment" {
 
 variable "services_names" {
   type = object({
-    mongo    = string
-    mysql    = string
-    walt_id  = string
-    orion_ld = string
-    ccs      = string
-    til      = string
-    tir      = string
-    tpr      = string
-    portal   = string
-    verifier = string
-    pdp      = string
-    kong     = string
-    keyrock  = string
+    mongo             = string
+    mysql             = string
+    walt_id           = string
+    walt_id_core      = string
+    walt_id_signatory = string
+    walt_id_auditor   = string
+    walt_id_custodian = string
+    walt_id_essif     = string
+    orion_ld          = string
+    ccs               = string
+    til               = string
+    tir               = string
+    tpr               = string
+    portal            = string
+    verifier          = string
+    pdp               = string
+    kong              = string
+    keyrock           = string
   })
   description = "values for the namespace of the services"
   default = {
-    mongo    = "mongodb"
-    mysql    = "mysql"
-    walt_id  = "waltid"
-    orion_ld = "orionld"
-    ccs      = "cred-conf-service"
-    til      = "trusted-issuers-list"
-    tir      = "trusted-issuers-registry" # this is include in the TIL service
-    tpr      = "trusted-participants-registry"
-    portal   = "portal"
-    verifier = "verifier"
-    pdp      = "pdp"
-    kong     = "proxy-kong"
-    keyrock  = "keyrock"
+    mongo             = "mongodb"
+    mysql             = "mysql"
+    walt_id           = "waltid"
+    walt_id_core      = "waltid-core"
+    walt_id_signatory = "waltid-signatory"
+    walt_id_auditor   = "waltid-auditor"
+    walt_id_custodian = "waltid-custodian"
+    walt_id_essif     = "waltid-essif"
+    orion_ld          = "orionld"
+    ccs               = "cred-conf-service"
+    til               = "trusted-issuers-list"
+    tir               = "trusted-issuers-registry" # this is include in the TIL service
+    tpr               = "trusted-participants-registry"
+    portal            = "portal"
+    verifier          = "verifier"
+    pdp               = "pdp"
+    kong              = "proxy-kong"
+    keyrock           = "keyrock"
   }
 
 }
