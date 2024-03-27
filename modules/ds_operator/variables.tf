@@ -23,7 +23,7 @@ variable "namespace" {
   default     = "ds-operator"
 }
 
-variable "ds_domain" {
+variable "service_domain" {
   type        = string
   description = "Data Space domain"
   default     = "ds-operator.io"
@@ -42,8 +42,8 @@ variable "flags_deployment" {
     credentials_config_service    = bool
     trusted_issuers_list          = bool
     trusted_participants_registry = bool
-    portal                        = bool
     verifier                      = bool
+    portal                        = bool
     pdp                           = bool
     kong                          = bool
     keyrock                       = bool
@@ -60,10 +60,10 @@ variable "flags_deployment" {
     trusted_issuers_list       = true
     # depends on: orion_ld
     trusted_participants_registry = true
-    # depends on: credentials_config_service, kong, verifier
-    portal = true
     # depends on: walt_id, credentials_config_service, trusted_issuers_list
     verifier = true
+    # depends on: credentials_config_service, kong, verifier
+    portal = true
     # depends on: walt_id, verifier
     pdp = true
     # depends on: orion_ld, pdp
@@ -83,9 +83,9 @@ variable "services_names" {
     til      = string
     tir      = string
     tpr      = string
-    portal   = string
     verifier = string
     pdp      = string
+    portal   = string
     kong     = string
     keyrock  = string
   })
@@ -99,13 +99,18 @@ variable "services_names" {
     til      = "trusted-issuers-list"
     tir      = "trusted-issuers-registry" # this is include in the TIL service
     tpr      = "trusted-participants-registry"
-    portal   = "portal"
     verifier = "verifier"
     pdp      = "pdp"
+    portal   = "portal"
     kong     = "proxy-kong"
     keyrock  = "keyrock"
   }
+}
 
+variable "did_option" {
+  type        = string
+  description = "DID option for the services"
+  default     = "web"
 }
 
 ################################################################################

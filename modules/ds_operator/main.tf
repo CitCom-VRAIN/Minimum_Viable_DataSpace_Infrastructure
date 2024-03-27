@@ -48,7 +48,7 @@ resource "helm_release" "mysql" {
   ]
 }
 
-#? DONE Ingress is needed? configuration datasource?
+#! Ingress not working!
 resource "helm_release" "walt_id" {
   depends_on = [kubernetes_manifest.certs_creation]
 
@@ -69,8 +69,9 @@ resource "helm_release" "walt_id" {
   values = [
     templatefile("${local.helm_conf_yaml_path}/waltid.yaml", {
       service_name    = var.services_names.walt_id,
-      dns_names       = local.dns_dir[var.services_names.walt_id],
-      secret_tls_name = local.secrets_tls[var.services_names.walt_id]
+      service_domain  = local.dns_dir[local.dns_domains.walt_id],
+      secret_tls_name = local.secrets_tls[local.dns_domains.walt_id],
+      did_domain      = local.did_methods[var.did_option]
     })
   ]
 }
@@ -136,7 +137,7 @@ resource "helm_release" "credentials_config_service" {
   ]
 }
 
-#? DONE Ingress is needed?
+#* DONE
 resource "helm_release" "trusted_issuers_list" {
   depends_on = [kubernetes_manifest.certs_creation, helm_release.mysql]
 
@@ -156,10 +157,10 @@ resource "helm_release" "trusted_issuers_list" {
   values = [
     templatefile("${local.helm_conf_yaml_path}/trusted_issuers_list.yaml", {
       service_name        = var.services_names.til,
-      ds_domain_til       = local.dns_dir[var.services_names.til], #til.ds-operator.io
-      secret_tls_name_til = local.secrets_tls[var.services_names.til],
-      ds_domain_tir       = local.dns_dir[var.services_names.tir], #tir.ds-operator.io
-      secret_tls_name_tir = local.secrets_tls[var.services_names.tir],
+      service_domain_til  = local.dns_dir[local.dns_domains.til], #til-operator.dataspace.deployment.local
+      secret_tls_name_til = local.secrets_tls[local.dns_domains.til],
+      service_domain_tir  = local.dns_dir[local.dns_domains.tir], #tir-operator.dataspace.deployment.local
+      secret_tls_name_tir = local.secrets_tls[local.dns_domains.tir],
       mysql_service       = var.services_names.mysql,
       root_password       = var.mysql.root_password,
       til_db              = var.mysql.til_db
@@ -195,9 +196,159 @@ resource "helm_release" "trusted_participants_registry" {
   values = [
     templatefile("${local.helm_conf_yaml_path}/trusted_participants_registry.yaml", {
       service_name       = var.services_names.tpr,
-      ds_domain          = local.dns_dir[var.services_names.tpr],
-      secret_tls_name    = local.secrets_tls[var.services_names.tpr],
+      service_domain     = local.dns_dir[local.dns_domains.tpr],
+      secret_tls_name    = local.secrets_tls[local.dns_domains.tpr],
+      did_domain         = local.did_methods[var.did_option],
       orion_service_name = var.services_names.orion_ld
+    })
+  ]
+}
+
+################################################################################
+# Depends on: WaltID, Credentials Config Service, Trusted Issuers List         #
+################################################################################
+
+resource "kubernetes_config_map" "did_config" {
+  metadata {
+    # configmap name
+    name      = "did-config"
+    namespace = var.namespace
+  }
+
+  data = {
+    "did-config.yml" = file("${local.helm_config_map_path}/verifier/did-config.yaml")
+  }
+}
+
+resource "kubernetes_config_map" "vc_config" {
+  metadata {
+    # configmap name
+    name      = "operator-verifier-credential"
+    namespace = var.namespace
+  }
+
+  data = {
+    "verifier-credential.yml" = file("${local.helm_config_map_path}/verifier/verifier-credential.yaml")
+  }
+}
+
+#? DONE m2m?? initContainers??
+resource "helm_release" "verifier" {
+  depends_on = [
+    kubernetes_manifest.certs_creation,
+    helm_release.credentials_config_service,
+    helm_release.trusted_issuers_list,
+    helm_release.walt_id,
+    kubernetes_config_map.did_config,
+    kubernetes_config_map.vc_config
+  ]
+
+  chart      = var.verifier.chart_name
+  version    = var.verifier.version
+  repository = var.verifier.repository
+  name       = var.services_names.verifier
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.verifier ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/verifier.yaml", {
+      namespace        = var.namespace,
+      service_name     = var.services_names.verifier,
+      service_domain   = local.dns_dir[local.dns_domains.verifier],
+      secret_tls_name  = local.secrets_tls[local.dns_domains.verifier],
+      waltid_service   = var.services_names.walt_id,
+      tir_service      = local.dns_dir[local.dns_domains.tir],
+      did_domain       = local.did_methods[var.did_option],
+      ccs_service      = var.services_names.ccs,
+      verifier_service = local.dns_domains.verifier
+    })
+  ]
+}
+
+################################################################################
+# Depends on: walt-id, verifier                                                #
+################################################################################
+
+#? DONE ishare?? did??
+resource "helm_release" "pdp" {
+  depends_on = [
+    kubernetes_manifest.certs_creation,
+    helm_release.walt_id,
+    helm_release.verifier
+  ]
+
+  chart      = var.pdp.chart_name
+  version    = var.pdp.version
+  repository = var.pdp.repository
+  name       = var.services_names.pdp
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.pdp ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/pdp.yaml", {
+      service_name           = var.services_names.pdp,
+      secret_tls_name_waltid = local.secrets_tls[local.dns_domains.walt_id],
+      did_domain             = local.did_methods[var.did_option],
+      keyrock_domain         = local.dns_dir[local.dns_domains.keyrock], #TODO: Review this variable
+      tpr_domain             = local.dns_dir[local.dns_domains.tpr],
+      verifier_domain        = local.dns_dir[local.dns_domains.verifier]
+    })
+  ]
+}
+
+################################################################################
+# Depends on: OrionLD, pdp                                                     #
+################################################################################
+
+resource "kubernetes_config_map" "kong_dbless" {
+  metadata {
+    name = "${var.services_names.kong}-dbless"
+  }
+
+  data = {
+    "kong.yml" = file("${local.helm_config_map_path}/kong/kong_dbless.yaml")
+  }
+}
+
+#? DONE dblessConfig??
+resource "helm_release" "kong" {
+  depends_on = [
+    kubernetes_manifest.certs_creation,
+    helm_release.orion_ld,
+    helm_release.pdp
+  ]
+
+  chart      = var.kong.chart_name
+  version    = var.kong.version
+  repository = var.kong.repository
+  name       = var.services_names.kong
+  namespace  = var.namespace
+  wait       = true
+  count      = var.flags_deployment.kong ? 1 : 0
+
+  set {
+    name  = "service.type"
+    value = "ClusterIP"
+  }
+
+  values = [
+    templatefile("${local.helm_conf_yaml_path}/kong_conf.yaml", {
+      namespace       = var.namespace,
+      service_name    = var.services_names.kong,
+      service_domain  = local.dns_dir[local.dns_domains.kong],
+      secret_tls_name = local.secrets_tls[local.dns_domains.kong],
     })
   ]
 }
@@ -231,12 +382,12 @@ resource "helm_release" "portal" {
   values = [
     templatefile("${local.helm_conf_yaml_path}/portal.yaml", {
       service_name       = var.services_names.portal,
-      didweb_domain      = var.ds_domain,
-      ds_domain          = local.dns_dir[var.services_names.portal],
-      secret_tls_name    = local.secrets_tls[var.services_names.portal],
-      ds_domain_tpr      = local.dns_dir[var.services_names.tpr],
-      ds_domain_verifier = local.dns_dir[var.services_names.verifier],
-      ds_domain_kong     = local.dns_dir[var.services_names.kong],
+      did_domain         = local.did_methods[var.did_option],
+      service_domain     = local.dns_dir[local.dns_domains.portal],
+      secret_tls_name    = local.secrets_tls[local.dns_domains.portal],
+      ds_domain_tpr      = local.dns_dir[local.dns_domains.tpr],
+      ds_domain_verifier = local.dns_dir[local.dns_domains.verifier],
+      ds_domain_kong     = local.dns_dir[local.dns_domains.kong],
       til_service        = var.services_names.til,
       css_service        = var.services_names.ccs,
       client_id          = "ds-operator-local" #TODO: Set as variable
@@ -245,121 +396,10 @@ resource "helm_release" "portal" {
 }
 
 ################################################################################
-# Depends on: WaltID, Credentials Config Service, Trusted Issuers List         #
-################################################################################
-
-#? DONE m2m?? initContainers??
-resource "helm_release" "verifier" {
-  depends_on = [
-    kubernetes_manifest.certs_creation,
-    helm_release.credentials_config_service,
-    helm_release.trusted_issuers_list,
-    helm_release.walt_id
-  ]
-
-  chart      = var.verifier.chart_name
-  version    = var.verifier.version
-  repository = var.verifier.repository
-  name       = var.services_names.verifier
-  namespace  = var.namespace
-  wait       = true
-  count      = var.flags_deployment.verifier ? 1 : 0
-
-  set {
-    name  = "service.type"
-    value = "ClusterIP"
-  }
-
-  values = [
-    templatefile("${local.helm_conf_yaml_path}/verifier.yaml", {
-      namespace        = var.namespace,
-      service_name     = var.services_names.verifier,
-      ds_domain        = local.dns_dir[var.services_names.verifier],
-      didweb_domain    = var.ds_domain,
-      secret_tls_name  = local.secrets_tls[var.services_names.verifier],
-      waltid_service   = var.services_names.walt_id,
-      tir_service      = local.dns_dir[var.services_names.tir],
-      ccs_service      = var.services_names.ccs,
-      verifier_service = var.services_names.verifier
-    })
-  ]
-}
-
-################################################################################
-# Depends on: walt-id, verifier                                                #
-################################################################################
-
-#? DONE ishare?? did??
-resource "helm_release" "pdp" {
-  depends_on = [
-    kubernetes_manifest.certs_creation,
-    helm_release.walt_id,
-    helm_release.verifier
-  ]
-
-  chart      = var.pdp.chart_name
-  version    = var.pdp.version
-  repository = var.pdp.repository
-  name       = var.services_names.pdp
-  namespace  = var.namespace
-  wait       = true
-  count      = var.flags_deployment.pdp ? 1 : 0
-
-  set {
-    name  = "service.type"
-    value = "ClusterIP"
-  }
-
-  values = [
-    templatefile("${local.helm_conf_yaml_path}/pdp.yaml", {
-      service_name           = var.services_names.pdp,
-      didweb_domain          = var.ds_domain,
-      verifier_service       = local.dns_dir[var.services_names.verifier],
-      keyrock_service        = local.dns_dir[var.services_names.keyrock],
-      secret_tls_name_waltid = local.secrets_tls[var.services_names.walt_id]
-    })
-  ]
-}
-
-################################################################################
-# Depends on: OrionLD, pdp                                                     #
-################################################################################
-
-#? DONE dblessConfig??
-resource "helm_release" "kong" {
-  depends_on = [
-    kubernetes_manifest.certs_creation,
-    helm_release.orion_ld,
-    helm_release.pdp
-  ]
-
-  chart      = var.kong.chart_name
-  version    = var.kong.version
-  repository = var.kong.repository
-  name       = var.services_names.kong
-  namespace  = var.namespace
-  wait       = true
-  count      = var.flags_deployment.kong ? 1 : 0
-
-  set {
-    name  = "service.type"
-    value = "ClusterIP"
-  }
-
-  values = [
-    templatefile("${local.helm_conf_yaml_path}/kong_conf.yaml", {
-      namespace       = var.namespace,
-      service_name    = var.services_names.kong,
-      ds_domain       = local.dns_dir[var.services_names.kong],
-      secret_tls_name = local.secrets_tls[var.services_names.kong],
-    })
-  ]
-}
-
-################################################################################
 # Depends on: walt-id, mysql, pdp                                              #
 ################################################################################
 
+#! Error deployment
 #FIXME: Error deployment
 # > fiware-idm@8.3.0 start /opt/fiware-idm
 # > node --max-http-header-size=${IDM_SERVER_MAX_HEADER_SIZE:-8192} ./bin/www
@@ -444,14 +484,15 @@ resource "helm_release" "keyrock" {
   values = [
     templatefile("${local.helm_conf_yaml_path}/keyrock.yaml", {
       service_name        = var.services_names.keyrock,
-      didweb_domain       = var.ds_domain,
-      dns_names           = local.dns_dir[var.services_names.keyrock],
-      secret_tls_name     = local.secrets_tls[var.services_names.keyrock],
+      service_domain      = local.dns_dir[local.dns_domains.keyrock],
+      secret_tls_name     = local.secrets_tls[local.dns_domains.keyrock],
+      mysql_service       = var.services_names.mysql,
+      mysql_root_password = var.mysql.root_password,
       admin_email         = var.keyrock.admin_email,
       admin_password      = var.keyrock.admin_password,
-      waltid_secret_tls   = local.secrets_tls[var.services_names.walt_id],
-      mysql_root_password = var.mysql.root_password,
-      mysql_service       = var.services_names.mysql
+      waltid_secret_tls   = local.secrets_tls[local.dns_domains.walt_id],
+      tpr_domain          = local.dns_dir[local.dns_domains.tpr],
+      did_domain          = local.did_methods[var.did_option]
     })
   ]
 }

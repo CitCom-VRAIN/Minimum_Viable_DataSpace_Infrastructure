@@ -16,33 +16,37 @@ deployment:
   ishare: #! What is this??
     existingSecret: ${secret_tls_name_waltid}
     
-    clientId: did:web:${didweb_domain}:did
+    clientId: ${did_domain}
 
     #* Initial list of fingerprints for trusted CAs. This will be overwritten
     #* after the first update from the trust anchor.
-    # trustedFingerprints:
+    # trustedFingerprints: #! What is this??
     #   - D2F62092F982CF783D4632BD86FA86C3FBFDB2D8C8A58BC6809163FCF5CD030B
     
     # ar: #! What is this??
-    #   id: "did:web:${didweb_domain}:did"
+    #   id: ${did_domain}
     #   delegationPath: "/ar/delegation"
     #   tokenPath: "/oauth2/token"
-    #   url: "https://${keyrock_service}"
+    #   url: "https://${keyrock_domain}" #TODO: Review this variable
     
-    # trustAnchor: #! What is this??
-    #   id: "EU.EORI.FIWARESATELLITE"
-    #   tokenPath: "/token"
-    #   trustedListPath: "/trusted_list"
-    #   url: "https://tir.dsba.fiware.dev" #TODO: Add variable
+    trustAnchor: #! What is this??
+      id: "EU.EORI.FIWARESATELLITE"
+      tokenPath: "/token"
+      trustedListPath: "/trusted_list"
+      url: "https://${tpr_domain}"
   
   trustedVerifiers:
-    - https://${verifier_service}/.well-known/jwks
+    - https://${verifier_domain}/.well-known/jwks
 
   # DID of the PDP
-  providerId: "did:web:${didweb_domain}:did"
+  providerId: ${did_domain}
   
 additionalEnvVars: #! What is this??
   - name: ISHARE_CERTIFICATE_PATH
     value: /iShare/tls.crt
+    # valueFrom:
+    #   secretKeyRef:
+    #     name: waltid_secret_tls
+    #     key: tls.crt
   - name: ISHARE_KEY_PATH
     value: /iShare/tls.key

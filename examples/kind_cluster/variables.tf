@@ -1,20 +1,13 @@
 variable "cluster_name" {
   type        = string
-  description = "The name of the kind cluster."
-  default     = "ds-local-cluster"
+  description = "The name of the kind cluster"
+  default     = "example-cluster"
 }
 
-variable "add_extra_mounts" {
-  type = list(
-    object(
-      {
-        host_path      = string
-        container_path = string
-      }
-    )
-  )
-  description = "Extra mounts to be added to all nodes."
-  default     = []
+variable "kubernetes_local_path" {
+  type        = string
+  description = "The path to the kubeconfig file"
+  default     = "~/.kube/config_example"
 }
 
 variable "flags_deployment" {
@@ -24,7 +17,7 @@ variable "flags_deployment" {
   })
   description = "Whether to deploy resources."
   default = {
-    portainer          = false
-    cert_trust_manager = false
+    cert_trust_manager = true
+    portainer          = true
   }
 }

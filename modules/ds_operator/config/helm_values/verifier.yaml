@@ -2,22 +2,22 @@ fullnameOverride: ${service_name}
 
 # Ingress configuration
 ingress:
-    enabled: true
-    annotations:
-        kubernetes.io/ingress.class: "nginx"
-        # forcing everything to use ssl
-        ingress.kubernetes.io/ssl-redirect: "true"
-        # example annotations, allowing cert-manager to automatically create tls-certs
-        kubernetes.io/tls-acme: "true"
-    hosts:
-      - host: ${ds_domain}
-        paths:
-        - /
-    # configure the ingress' tls
-    tls:
-      - secretName: ${secret_tls_name}
-        hosts:
-          - ${ds_domain}
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    # forcing everything to use ssl
+    ingress.kubernetes.io/ssl-redirect: "true"
+    # example annotations, allowing cert-manager to automatically create tls-certs
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: ${service_domain}
+      paths:
+      - /
+  # configure the ingress' tls
+  tls:
+    - secretName: ${secret_tls_name}
+      hosts:
+        - ${service_domain}
 
 deployment:
   image:
@@ -31,25 +31,29 @@ deployment:
       - "/health"
   
   server:
-    host: https://${ds_domain}
+    host: https://${service_domain}
   
-  ssikit: #! What is this??
+  ssikit:
     auditorUrl: http://${waltid_service}:7003
   
   verifier:
     tirAddress: https://${tir_service}/v3/issuers
-    did: did:web:${didweb_domain}:did
+    did: ${did_domain}
   
-  # m2m: #! What is this??
-  #   authEnabled: true
-  #   keyPath: /opt/did/secret/tls.key
-  #   credentialPath: /opt/credential/c127.0.0.1
-  #   clientId: tir-res
-  #   verificationMethod: did:web:${didweb_domain}:did#54134df8357d4aaea1e600f3d0ebe7fb
+  m2m: #! What is this??
+    authEnabled: true
+    keyPath: /opt/did/secret/tls.key
+    credentialPath: /opt/credential/credential.json
+    clientId: tir-res
+    verificationMethod: ${did_domain}
   
   configRepo:
     configEndpoint: http://${ccs_service}:8080/
   
+  # TODO: Error deployment
+  # kubectl logs verifier-66f66844fb-dfz6v --context kind-ds-local-cluster --kubeconfig ~/.kube/config_DSLocal -n ds-operator
+  # Defaulted container "vcverifier" out of: vcverifier, load-did (init)
+  # ---
   # initContainers: #! What is this??
   #   - name: load-did
   #     image: quay.io/opencloudio/curl:4.2.0-build.8
@@ -65,18 +69,18 @@ deployment:
   #         mountPath: /opt/did/script
   #       - name: did-secret
   #         mountPath: /opt/did/secret
-  # # additionalVolumeMounts:
-  # #   - name: ${service_name}
-  # #     mountPath: /opt/credential
-  # #   - name: did-secret
-  # #     mountPath: /opt/did/secret
-  # # additionalVolumes:
-  # #   - name: ${namespace}-did-config
-  # #     configMap: #! Where is this defined?
-  # #       name: ${namespace}-did-config
-  # #   - name: ${service_name}
-  # #     configMap: #! Where is this defined?
-  # #       name: ${service_name}
-  # #   # - name: did-secret
-  # #   #   secret:  #! Is this the tls certificate of the domain name?
-  # #   #     secretName: ${secret_tls_name} #dsba-onboarding-portal-verifier-vcverifier-tls-sec
+  # additionalVolumeMounts:
+  #   - name: dsba-onboarding-verifier-credential
+  #     mountPath: /opt/credential
+  #   - name: did-secret
+  #     mountPath: /opt/did/secret
+  # additionalVolumes:
+  #   - name: dsba-onboarding-did-config
+  #     configMap: #! configmap
+  #       name: did-config
+  #   - name: dsba-onboarding-verifier-credential
+  #     configMap: #! configmap - how have the credentials been generated?
+  #       name: operator-verifier-credential
+  #   - name: did-secret
+  #     secret: #! Is this the tls certificate of the domain name?
+  #       secretName:  ${secret_tls_name}

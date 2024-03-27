@@ -21,17 +21,3 @@ variable "secret_ca_container" {
   description = "The name of the secret container"
   default     = "ca-cert-manager"
 }
-
-#! Incomatible when is using as a module
-# variable "host" {
-#   type = string
-# }
-# variable "client_certificate" {
-#   type = string
-# }
-# variable "client_key" {
-#   type = string
-# }
-# variable "cluster_ca_certificate" {
-#   type = string
-# }

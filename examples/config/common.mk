@@ -13,21 +13,42 @@ define deploy_cluster
 	@export module=$(1) && \
 		cd ../kind_cluster && \
 		terraform init -upgrade && \
-		terraform apply -auto-approve -var-file="../$$module/config/kind_cluster.tfvars"
+		terraform apply -auto-approve \
+			-target=module.local_k8s_cluster \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform apply -auto-approve \
+			-target=module.cluster_config \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform apply -auto-approve \
+			-target=module.portainer \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform apply -auto-approve \
+			-target=module.cert_trust_manager \
+			-var-file="../$$module/config/kind_cluster.tfvars"
 endef
 
 define destroy_cluster
-	@cd ../kind_cluster && \
-		terraform destroy -auto-approve && \
+	@export module=$(1) && \
+		cd ../kind_cluster && \
+		terraform destroy -auto-approve \
+			-target=module.cert_trust_manager \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform destroy -auto-approve \
+			-target=module.portainer \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform destroy -auto-approve \
+			-target=module.cluster_config \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
+		terraform destroy -auto-approve \
+			-target=module.local_k8s_cluster \
+			-var-file="../$$module/config/kind_cluster.tfvars" && \
 		$(remove_tmp_tf) && \
 		rm -rf terraform.tfvars
 endef
 
 define deploy_services
-	@export CLUSTER_NAME=`grep 'cluster_name' ./config/kind_cluster.tfvars | cut -d'=' -f2 | tr -d ' "'` && \
-		bash ../../modules/kind_cluster/scripts/get_cluster_properties.sh $$CLUSTER_NAME && \
-		terraform init -upgrade && \
-		terraform apply -auto-approve 
+	terraform init -upgrade
+	terraform apply -auto-approve 
 endef
 
 define destroy_services
