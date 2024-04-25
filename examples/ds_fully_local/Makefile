@@ -14,7 +14,7 @@ init_apply:
 ## Destroy ALL Terraform resources (cluster + services).
 destroy:
 	-$(destroy_services)
-	$(destroy_cluster)
+	$(call destroy_cluster,"ds_fully_local")
 
 ## Deploy services only.
 services_init_apply:
@@ -30,4 +30,4 @@ cluster_init_apply:
 
 ## Destroy cluster only.
 cluster_destroy:
-	$(destroy_cluster)
+	$(call destroy_cluster,"ds_fully_local")

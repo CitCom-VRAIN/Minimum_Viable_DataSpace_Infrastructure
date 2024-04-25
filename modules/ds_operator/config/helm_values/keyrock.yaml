@@ -2,11 +2,10 @@ fullnameOverride: ${service_name}
 
 statefulset:
   image:
-    # repository: quay.io/wi_stefan/keyrock
-    # tag: sn-fix
-    # ref: https://hub.docker.com/r/fiware/idm
-    repository: fiware/idm
-    tag: 8.3.3
+    repository: quay.io/wi_stefan/keyrock
+    tag: sn-fix
+    # repository: fiware/idm
+    # tag: 8.3.3
     pullPolicy: IfNotPresent
 
   replicaCount: 1
@@ -91,39 +90,40 @@ ingress:
     # example annotations, allowing cert-manager to automatically create tls-certs
     kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ${dns_names}
+    - host: ${service_domain}
       paths:
       - /
   # configure the ingress' tls
   tls:
     - secretName: ${secret_tls_name}
       hosts:
-        - ${dns_names}
+        - ${service_domain}
 
 #* External hostname of Keyrock
-host: https://${dns_names}
+host: https://${service_domain} # fiware example: https://ar.dsba.fiware.dev
 #* Port that the keyrock container uses
 port: 8080 # default port
 
 #* Configuration of Authorisation Registry (AR)
 authorisationRegistry: 
-  enabled: false
-  # -- Identifier (EORI) of AR
-  identifier: "did:web:${didweb_domain}:did"
-  # -- URL of AR
+  enabled: true
+  # Identifier (EORI) of AR
+  identifier: ${did_domain}
+  # URL of AR
   url: "internal"
 
 #* Configuration of iSHARE Satellite
 satellite: 
   enabled: false
-  # # -- Identifier (EORI) of satellite
-  # identifier: "EU.EORI.FIWARESATELLITE"
-  # # -- URL of satellite
-  # url: "https://tir.dsba.fiware.dev"
-  # # -- Token endpoint of satellite
-  # tokenEndpoint: "https://tir.dsba.fiware.dev/token"
-  # # -- Parties endpoint of satellite
-  # partiesEndpoint: "https://tir.dsba.fiware.dev/parties"
+  # Identifier (EORI) of satellite
+  identifier: "EU.EORI.FIWARESATELLITE"
+  # URL of satellite
+  url: "https://${tpr_domain}"
+  # Token endpoint of satellite
+  tokenEndpoint: "https://${tpr_domain}/token"
+  # Parties endpoint of satellite
+  partiesEndpoint: "https://${tpr_domain}/parties"
+
 #* Configuration of local key and certificate for validation and generation of tokens
 token:
   enabled: false
@@ -134,11 +134,17 @@ additionalEnvVars:
   - name: IDM_TITLE
     value: "dsba AR"
   - name: IDM_DB_NAME
-    value: ar_idm
+    value: bp_one_idm
   - name: IDM_DB_SEED
     value: "true"
   - name: IDM_SERVER_MAX_HEADER_SIZE
     value: "32768"
+  # - name: IDM_EMAIL_ADDRESS
+  #   value: "bp-one@fiware.io"
+  # - name: IDM_EMAIL_HOST
+  #   value: "mailgun-fiware-io.infra.svc.cluster.local"
+  # - name: IDM_EMAIL_PORT
+  #   value: "25"
   - name: IDM_PR_CLIENT_KEY
     valueFrom:
       secretKeyRef:
@@ -154,4 +160,15 @@ additionalEnvVars:
 #   - name: DEBUG
 #     value: "*"
   - name: IDM_PR_CLIENT_ID
-    value: "did:web:${didweb_domain}:did"
+    value: ${did_domain}
+
+## Init scripts for Keyrock
+initScript:
+  ## Creation of role mapping policies during deployment
+  rolePolicy:
+    policyEnabled: true
+    dbName: bp_one_idm
+    issuer: ${did_domain}
+    notBefore: "1616583866"
+    notOnOrAfter: "1735817171"
+    issuerDid: ${did_domain}

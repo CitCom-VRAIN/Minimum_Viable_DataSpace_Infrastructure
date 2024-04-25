@@ -16,133 +16,96 @@ ingress:
     kubernetes.io/tls-acme: "true"
   hosts:
     # in fiware example it's: onboarding.dsba.fiware.dev (localhost by default)
-    - host: ${dns_names}
+    - host: ${service_domain}
       paths:
       - /
   # configure the ingress' tls
   tls:
     - secretName: ${secret_tls_name}
       hosts:
-        - ${dns_names}
+        - ${service_domain}
+
+did: ${did_domain}
 
 #* Walt-id config
-vcwaltid:
-  deployment:
-    replicaCount: 1
-    revisionHistoryLimit: 3
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 0
-    image:
-      repository: quay.io/fiware/waltid
-      tag: 1.14.1-SNAPSHOT
-      pullPolicy: Always
-  persistence: 
+deployment:
+  replicaCount: 1
+  revisionHistoryLimit: 3
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  image:
+    repository: quay.io/fiware/waltid
+    tag: 1.14.1-SNAPSHOT
+    pullPolicy: Always
+persistence: 
+  enabled: true
+  pvc:
+    size: 1Gi
+api:
+  ############################################################################
+  #* CORE API configuration
+  ############################################################################
+  core: 
     enabled: true
-    pvc:
-      size: 1Gi
-  api:
-    ############################################################################
-    #* CORE API configuration
-    ############################################################################
-    core: 
-      enabled: true
-      port: 7000
-    ############################################################################
-    #* SIGNATORY API configuration
-    ############################################################################
-    signatory: 
-      enabled: true
-      port: 7001
-    ############################################################################
-    #* AUDITOR API configuration
-    ############################################################################
-    auditor: 
-      enabled: true
-      port: 7002
-    ############################################################################
-    #* CUSTODIAN API configuration
-    ############################################################################
-    custodian:
-      enabled: true
-      port: 7003
-    ############################################################################
-    #* ESSIF API configuration
-    ############################################################################
-    essif:
-      enabled: true
-      port: 7010
+    port: 7000
+  ############################################################################
+  #* SIGNATORY API configuration
+  ############################################################################
+  signatory: 
+    enabled: true
+    port: 7001
+  ############################################################################
+  #* AUDITOR API configuration
+  ############################################################################
+  auditor: 
+    enabled: true
+    port: 7002
+  ############################################################################
+  #* CUSTODIAN API configuration
+  ############################################################################
+  custodian:
+    enabled: true
+    port: 7003
+  ############################################################################
+  #* ESSIF API configuration
+  ############################################################################
+  essif:
+    enabled: true
+    port: 7010
 
-  #* VC templates to be used by waltId
-  # templates: #! What is this??
-  #   GaiaXParticipantCredential.json: |
-  #     {
-  #       "@context": [
-  #         "https://www.w3.org/2018/credentials/v1",
-  #         "https://registry.lab.dsba.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#"
-  #       ],
-  #       "type": [
-  #         "VerifiableCredential"
-  #       ],
-  #       "id": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
-  #       "issuer": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
-  #       "issuanceDate": "2023-03-21T12:00:00.148Z",
-  #       "credentialSubject": {
-  #         "id": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
-  #         "type": "gx:LegalParticipant",
-  #         "gx:legalName": "dsba compliant participant",
-  #         "gx:legalRegistrationNumber": {
-  #           "gx:vatID": "MYVATID"
-  #         },
-  #         "gx:headquarterAddress": {
-  #           "gx:countrySubdivisionCode": "BE-BRU"
-  #         },
-  #         "gx:legalAddress": {
-  #           "gx:countrySubdivisionCode": "BE-BRU"
-  #         },
-  #         "gx-terms-and-conditions:gaiaxTermsAndConditions": "70c1d713215f95191a11d38fe2341faed27d19e083917bc8732ca4fea4976700"
-  #       }
-  #     }
+#* VC templates to be used by waltId
+templates: #! What is this??
+  GaiaXParticipantCredential.json: |
+    {
+      "@context": [
+        "https://www.w3.org/2018/credentials/v1",
+        "https://registry.lab.dsba.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#"
+      ],
+      "type": [
+        "VerifiableCredential"
+      ],
+      "id": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
+      "issuer": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
+      "issuanceDate": "2023-03-21T12:00:00.148Z",
+      "credentialSubject": {
+        "id": "did:web:raw.githubusercontent.com:egavard:payload-sign:master",
+        "type": "gx:LegalParticipant",
+        "gx:legalName": "dsba compliant participant",
+        "gx:legalRegistrationNumber": {
+          "gx:vatID": "MYVATID"
+        },
+        "gx:headquarterAddress": {
+          "gx:countrySubdivisionCode": "BE-BRU"
+        },
+        "gx:legalAddress": {
+          "gx:countrySubdivisionCode": "BE-BRU"
+        },
+        "gx-terms-and-conditions:gaiaxTermsAndConditions": "70c1d713215f95191a11d38fe2341faed27d19e083917bc8732ca4fea4976700"
+      }
+    }
 
-  #? not configured in the fiware example: https://github.com/FIWARE-Ops/fiware-gitops/blob/master/aws/dsba/onboarding-portal/walt-id/values.yaml
-  # config:
-  #   datasource:
-  #     # database configuaration, see hikari docu for options
-  #     jdbcUrl: jdbc:sqlite:data/walt.db
-  #     maximumPoolSize: 5
-  #     autoCommit: false
-  #     dataSource:
-  #       journalMode: WAL
-  #       fullColumnNames: false
-  #   additionalConfig:
-  #   serviceConf:
-  #     signatory.conf: |
-  #       proofConfig {
-  #         issuerDid="To-be-decided"
-  #         issuerVerificationMethod="todo"
-  #         proofType="LD_PROOF"
-  #         domain="TEST"
-  #         nonce="todo"
-  #       }
-  #       templatesFolder: "/vc-templates-runtime"
-  #   # Service matrix config, see waltID documentation for more details
-  #   # In order to change the config of a service, set the config path to
-  #   # the mounted file
-  #   serviceMatrix:
-  #     id.walt.services.ecosystems.essif.didebsi.DidEbsiService=id.walt.services.ecosystems.essif.didebsi.WaltIdDidEbsiService
-  #     id.walt.services.ecosystems.essif.jsonrpc.JsonRpcService=id.walt.services.ecosystems.essif.jsonrpc.WaltIdJsonRpcService
-  #     id.walt.services.vc.JsonLdCredentialService=id.walt.services.vc.WaltIdJsonLdCredentialService
-  #     id.walt.services.vc.JwtCredentialService=id.walt.services.vc.WaltIdJwtCredentialService
-  #     id.walt.services.crypto.CryptoService=id.walt.services.crypto.SunCryptoService
-  #     id.walt.services.keystore.KeyStoreService=id.walt.services.keystore.SqlKeyStoreService
-  #     id.walt.services.key.KeyService=id.walt.services.key.WaltIdKeyService
-  #     id.walt.services.jwt.JwtService=id.walt.services.jwt.WaltIdJwtService
-  #     id.walt.services.vcstore.VcStoreService=id.walt.services.vcstore.FileSystemVcStoreService
-  #     id.walt.services.hkvstore.HKVStoreService=id.walt.services.hkvstore.FileSystemHKVStore:config/fsStore.conf
-  #     id.walt.services.context.ContextManager=id.walt.services.context.WaltIdContextManager
-  #     id.walt.signatory.Signatory=id.walt.signatory.WaltIdSignatory:/config/signatory.conf
-  #     id.walt.custodian.Custodian=id.walt.custodian.WaltIdCustodian
-  #     id.walt.auditor.Auditor=id.walt.auditor.WaltIdAuditor
-  #     id.walt.services.ecosystems.gaiax.GaiaxService=id.walt.services.ecosystems.gaiax.WaltIdGaiaxService
+#? not configured in the fiware example: https://github.com/FIWARE-Ops/fiware-gitops/blob/master/aws/dsba/onboarding-portal/walt-id/values.yaml
+# config:

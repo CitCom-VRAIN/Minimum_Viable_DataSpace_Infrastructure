@@ -1,9 +1,5 @@
 fullnameOverride: ${service_name}
 
-deployment:
-  image:  
-    tag: 0.0.3
-
 ## ingress configuration
 ingress:
   # Route config for the trusted issuers list endpoint
@@ -16,13 +12,13 @@ ingress:
       # example annotations, allowing cert-manager to automatically create tls-certs
       kubernetes.io/tls-acme: "true"
     hosts:
-      - host: ${ds_domain_til}
+      - host: ${service_domain_til}
         paths:
           - /
     tls:
       - secretName: ${secret_tls_name_til}
         hosts:
-          - ${ds_domain_til}
+          - ${service_domain_til}
   # Route config for the trusted issuers registry endpoint
   tir:
     enabled: true
@@ -33,18 +29,22 @@ ingress:
       # example annotations, allowing cert-manager to automatically create tls-certs
       kubernetes.io/tls-acme: "true"
     hosts:
-      - host: ${ds_domain_tir}
+      - host: ${service_domain_tir}
         paths:
           - /
     tls:
       - secretName: ${secret_tls_name_tir}
         hosts:
-          - ${ds_domain_tir}
+          - ${service_domain_tir}
+
+deployment:
+  image:  
+    tag: 0.0.3
 
 database:
   persistence: true
   host: ${mysql_service}
-  port: 3306
+  port: 3306 #TODO: Set as variable
   name: ${til_db}
-  username: root
+  username: root #TODO: Set as variable
   password: ${root_password}

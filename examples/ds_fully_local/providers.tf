@@ -1,13 +1,11 @@
 provider "helm" {
   kubernetes {
-    config_path = pathexpand(local.kubernetes_path)
+    config_path    = pathexpand(var.kubernetes_local_path)
+    config_context = "kind-${var.cluster_name}"
   }
 }
 
 provider "kubernetes" {
-  host = var.host
-
-  client_certificate     = base64decode(var.client_certificate)
-  client_key             = base64decode(var.client_key)
-  cluster_ca_certificate = base64decode(var.cluster_ca_certificate)
+  config_path    = pathexpand(var.kubernetes_local_path)
+  config_context = "kind-${var.cluster_name}"
 }

@@ -3,7 +3,7 @@ fullnameOverride: ${service_name}
 deployment:
   image:
     repository: quay.io/i4trust/pdc-portal
-    tag: 2.9.0
+    tag: 2.8.1
     pullPolicy: Always
   livenessProbe:
     initialDelaySeconds: 4
@@ -22,14 +22,14 @@ ingress:
     # example annotations, allowing cert-manager to automatically create tls-certs
     kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ${ds_domain}
+    - host: ${service_domain}
       paths:
       - /
   # configure the ingress' tls
   tls:
     - secretName: ${secret_tls_name}
       hosts:
-        - ${ds_domain}
+        - ${service_domain}
 
 debug:
   enabled: true
@@ -52,7 +52,7 @@ config:
   inputLabel: "Participant"
 
   external:
-    host: ${ds_domain}
+    host: ${service_domain}
 
   oidc:
     redirect_path: "/openid_connect1.0/return"
@@ -73,7 +73,7 @@ config:
     # Base uri of the verifier
     verifier_uri: https://${ds_domain_verifier}
     # DID of verifier
-    did: "did:web:${didweb_domain}:did"
+    did: ${did_domain}
     # Client ID to be used
     client_id: ${client_id}
     # Show separate Login button which shows the JWT access token only after login

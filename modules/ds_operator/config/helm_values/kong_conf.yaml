@@ -77,7 +77,7 @@ proxy:
     pathType: ImplementationSpecific
     # hostname
     hosts:
-      - host: ${ds_domain}
+      - host: ${service_domain}
         paths:
         - /
     # TLS secret(s)
@@ -105,38 +105,38 @@ status:
 #!   configMap: kong-one-configmap
 dblessConfig:
   # Either Kong's configuration is managed from an existing ConfigMap (with Key: kong.yml)
-  # configMap: ""
+  configMap: ${dbless_configmap}
   # Or Kong's configuration is managed from an existing Secret (with Key: kong.yml)
   # secret: ""
   # Or the configuration is passed in full-text below
-  config: |
-    _format_version: "2.1"
-    _transform: true
-    consumers:
-    - username: token-consumer #! ??
-      keyauth_credentials:
-      - tags: #! ??
-        - token-key
-        - tir-key
-    services:
-      - host: "orionld" #TODO: Set as variable
-        name: "orion" #! namespace?? #TODO: Set as variable 
-        port: 1026
-        protocol: http
-        routes:
-          - name: orion #! ?? #TODO: Set as variable
-            paths:
-              - /orion #! ?? #TODO: Set as variable
-            strip_path: true
-        plugins:
-          - name: pep-plugin
-            config:
-              pathprefix: "/orion" #! ?? #TODO: Set as variable
-              authorizationendpointtype: ExtAuthz
-              authorizationendpointaddress: http://pdp:8080/authz #TODO: Set as variable
-          - name: request-transformer
-            config:
-              remove:
-                headers:
-                  - Authorization
-                  - authorization
+  # config: |
+  #   _format_version: "2.1"
+  #   _transform: true
+  #   consumers:
+  #   - username: token-consumer #! ??
+  #     keyauth_credentials:
+  #     - tags: #! ??
+  #       - token-key
+  #       - tir-key
+  #   services:
+  #     - host: "orionld" #TODO: Set as variable
+  #       name: "orion" #! namespace?? #TODO: Set as variable 
+  #       port: 1026
+  #       protocol: http
+  #       routes:
+  #         - name: orion #! ?? #TODO: Set as variable
+  #           paths:
+  #             - /orion #! ?? #TODO: Set as variable
+  #           strip_path: true
+  #       plugins:
+  #         - name: pep-plugin
+  #           config:
+  #             pathprefix: "/orion" #! ?? #TODO: Set as variable
+  #             authorizationendpointtype: ExtAuthz
+  #             authorizationendpointaddress: http://pdp:8080/authz #TODO: Set as variable
+  #         - name: request-transformer
+  #           config:
+  #             remove:
+  #               headers:
+  #                 - Authorization
+  #                 - authorization

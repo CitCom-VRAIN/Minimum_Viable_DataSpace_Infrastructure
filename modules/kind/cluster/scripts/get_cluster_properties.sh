@@ -15,7 +15,7 @@ if ! [ -x "$(command -v yq)" ]; then
     sudo apt install yq -y 
 fi
 
-output=$(kubectl config view --minify --flatten --context="kind-$cluster_name")
+output=$(kubectl config view --minify --flatten --context kind-$cluster_name --kubeconfig ~/.kube/config_terraform)
 
 host=$(echo "$output" | yq e '.clusters[0].cluster.server' -)
 client_certificate=$(echo "$output" | yq e '.users[0].user.client-certificate-data' -)

@@ -23,7 +23,7 @@ resource "kubernetes_manifest" "certs_creation" {
         name = var.ca_clusterissuer_name
         kind = "ClusterIssuer"
       }
-      dnsNames = [each.value.dns_names]
+      dnsNames = [each.value.dns_name]
     }
   }
 }

@@ -1,0 +1,111 @@
+_format_version: "2.1"
+_transform: true
+
+consumers:
+- username: token-consumer
+  keyauth_credentials:
+  - tags: 
+    - token-key
+    - tir-key
+
+services:
+  
+  - host: "token-helper"
+    name: "token-helper"
+    port: 8080
+    protocol: http
+
+    routes:
+      - name: token-helper
+        paths:
+          - /token
+        strip_path: false
+
+    plugins:
+      - name: prometheus
+
+      - name: key-auth
+        config: 
+          hide_credentials: true 
+          key_in_header: true 
+          key_names:
+            - X-Api-Key
+            
+      - name: rate-limiting
+        config: 
+          minute: 30
+  
+  - host: ${orion_service}
+    name: ${orion_name}
+    port: ${orion_port}
+    protocol: http
+
+    routes:
+      - name: ${orion_name}
+        paths:
+          - /${orion_name}
+        strip_path: true
+
+    plugins:
+      - name: prometheus
+
+      - name: key-auth
+        config: 
+          hide_credentials: true 
+          key_in_header: true 
+          key_names:
+            - X-Api-Key
+            
+      - name: rate-limiting
+        config: 
+          minute: 30
+
+  - host: ${waltid_service}
+    name: ${waltid_name}
+    port: ${waltid_custodian_port}
+    protocol: http
+
+    routes:
+      - name: ${waltid_name}
+        paths:
+          - /${waltid_name}
+        strip_path: true
+
+    plugins:
+      - name: prometheus
+
+      - name: key-auth
+        config: 
+          hide_credentials: true 
+          key_in_header: true 
+          key_names:
+            - X-Api-Key
+            
+      - name: rate-limiting
+        config: 
+          minute: 30
+
+  - host: ${portal_orion}
+    name: ${portal_orion_name}
+    port: 1026
+    protocol: http
+
+    routes:
+      - name: ${portal_orion_name}
+        paths:
+          - /${portal_orion_name}
+        strip_path: true
+
+    plugins:
+      - name: pep-plugin
+        config:
+          pathprefix: "/${portal_orion_name}"
+          authorizationendpointtype: ExtAuthz
+          authorizationendpointaddress: http://${portal_orion_name}:8080/authz
+            
+      - name: request-transformer
+        config:
+          remove:
+            headers:
+              - Authorization
+              - authorization
