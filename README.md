@@ -1,3 +1,12 @@
+>[!WARNING]
+> **Branch Halted**
+>
+> This development has been halted and will not be continued in the foreseeable future.
+>
+> `module/ds_marketplace`
+
+---
+
 <a name="readme-top"></a>
 
 <!-- PROJECT LOGO -->
